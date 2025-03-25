@@ -2,13 +2,16 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import time
-from datetime import datetime, UTC  # UTC 추가
+from datetime import datetime, UTC
 
 URL = "https://www.fmkorea.com/search.php?mid=hotdeal&category=&listStyle=webzine&search_keyword=%EB%B8%94%EB%A3%A8%EC%8A%A4%EC%B9%B4%EC%9D%B4&search_target=title_content"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
 STORED_IDS_FILE = "post_ids.txt"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
+
+print("Token:", TELEGRAM_TOKEN)
+print("Chat ID:", CHAT_ID)
 
 def get_posts():
     response = requests.get(URL, headers=HEADERS)
@@ -38,11 +41,18 @@ def write_ids_to_file(ids):
 def send_telegram_notification(title, link):
     message = f"새로운 글: {title}\n{link}"
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
-    requests.get(url)
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            print(f"텔레그램 전송 실패: {response.status_code}, {response.text}")
+        else:
+            print("텔레그램 전송 성공")
+    except Exception as e:
+        print("텔레그램 전송 중 에러:", e)
 
 while True:
-    now = datetime.now(UTC)  # 수정: UTC timezone 사용
-    if now.hour == 0 and now.minute == 0:  # UTC 0시 = KST 9시
+    now = datetime.now(UTC)
+    if now.hour == 22 and now.minute == 0:  # UTC 22시 = KST 7시
         try:
             current_posts = get_posts()
             current_ids = {post[0] for post in current_posts}
