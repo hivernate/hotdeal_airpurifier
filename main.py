@@ -58,11 +58,15 @@ while True:
             current_ids = {post[0] for post in current_posts}
             if not os.path.exists(STORED_IDS_FILE):
                 write_ids_to_file(current_ids)
+                send_telegram_notification("첫 체크 - 새 글 없음", URL)  # 첫 실행 시
             else:
                 stored_ids = read_stored_ids()
                 new_posts = [post for post in current_posts if post[0] not in stored_ids]
-                for post in new_posts:
-                    send_telegram_notification(post[1], post[2])
+                if new_posts:
+                    for post in new_posts:
+                        send_telegram_notification(post[1], post[2])  # 새 글 있음
+                else:
+                    send_telegram_notification("새 글 없음", URL)  # 새 글 없음
                 write_ids_to_file(current_ids)
             print("체크 완료:", datetime.now(UTC))
         except Exception as e:
