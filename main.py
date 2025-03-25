@@ -1,9 +1,8 @@
-
 import requests
 from bs4 import BeautifulSoup
 import os
 import time
-from datetime import datetime
+from datetime import datetime, UTC  # UTC 추가
 
 URL = "https://www.fmkorea.com/search.php?mid=hotdeal&category=&listStyle=webzine&search_keyword=%EB%B8%94%EB%A3%A8%EC%8A%A4%EC%B9%B4%EC%9D%B4&search_target=title_content"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
@@ -42,7 +41,7 @@ def send_telegram_notification(title, link):
     requests.get(url)
 
 while True:
-    now = datetime.utcnow()
+    now = datetime.now(UTC)  # 수정: UTC timezone 사용
     if now.hour == 0 and now.minute == 0:  # UTC 0시 = KST 9시
         try:
             current_posts = get_posts()
@@ -55,7 +54,7 @@ while True:
                 for post in new_posts:
                     send_telegram_notification(post[1], post[2])
                 write_ids_to_file(current_ids)
-            print("체크 완료:", datetime.utcnow())
+            print("체크 완료:", datetime.now(UTC))
         except Exception as e:
             print("에러 발생:", e)
     time.sleep(60)
