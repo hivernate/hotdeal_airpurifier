@@ -9,9 +9,11 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 STORED_IDS_FILE = "post_ids.txt"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
+LOG_FILE = "log.txt"
 
-print("Token:", TELEGRAM_TOKEN)
-print("Chat ID:", CHAT_ID)
+def log(message):
+    with open(LOG_FILE, "a") as f:
+        f.write(f"{datetime.now(UTC)}: {message}\n")
 
 def get_posts():
     response = requests.get(URL, headers=HEADERS)
@@ -44,31 +46,38 @@ def send_telegram_notification(title, link):
     try:
         response = requests.get(url)
         if response.status_code != 200:
+            log(f"텔레그램 전송 실패: {response.status_code}, {response.text}")
             print(f"텔레그램 전송 실패: {response.status_code}, {response.text}")
         else:
+            log("텔레그램 전송 성공")
             print("텔레그램 전송 성공")
     except Exception as e:
-        print("텔레그램 전송 중 에러:", e)
+        log(f"텔레그램 전송 중 에러: {e}")
+        print(f"텔레그램 전송 중 에러: {e}")
 
 while True:
     now = datetime.now(UTC)
-    if now.hour == 22 and now.minute == 0:  # UTC 22시 = KST 7시
+    log(f"현재 UTC 시간: {now}")
+    print(f"현재 UTC 시간: {now}")
+    if now.hour == 22 and now.minute == 0:
         try:
             current_posts = get_posts()
             current_ids = {post[0] for post in current_posts}
             if not os.path.exists(STORED_IDS_FILE):
                 write_ids_to_file(current_ids)
-                send_telegram_notification("첫 체크 - 새 글 없음", URL)  # 첫 실행 시
+                send_telegram_notification("첫 체크 - 새 글 없음", URL)
             else:
                 stored_ids = read_stored_ids()
                 new_posts = [post for post in current_posts if post[0] not in stored_ids]
                 if new_posts:
                     for post in new_posts:
-                        send_telegram_notification(post[1], post[2])  # 새 글 있음
+                        send_telegram_notification(post[1], post[2])
                 else:
-                    send_telegram_notification("새 글 없음", URL)  # 새 글 없음
+                    send_telegram_notification("새 글 없음", URL)
                 write_ids_to_file(current_ids)
+            log("체크 완료")
             print("체크 완료:", datetime.now(UTC))
         except Exception as e:
+            log(f"에러 발생: {e}")
             print("에러 발생:", e)
     time.sleep(60)
