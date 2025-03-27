@@ -59,7 +59,11 @@ while True:
     now = datetime.now(UTC)
     log(f"현재 UTC 시간: {now}")
     print(f"현재 UTC 시간: {now}")
-    if now.hour == 22 and now.minute == 0:
+    
+    # 매 시간 정각에 실행
+    if now.minute == 0:
+        log("정각이 되어 체크를 시작합니다.")
+        print("정각이 되어 체크를 시작합니다.")
         try:
             current_posts = get_posts()
             current_ids = {post[0] for post in current_posts}
