@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 from datetime import datetime, UTC
+import time
 
 app = Flask(__name__)
 URL = "https://www.fmkorea.com/search.php?mid=hotdeal&category=&listStyle=webzine&search_keyword=%EB%B8%94%EB%A3%A8%EC%8A%A4%EC%B9%B4%EC%9D%B4&search_target=title_content"
@@ -17,22 +18,27 @@ def log(message):
         f.write(f"{datetime.now(UTC)}: {message}\n")
 
 def get_posts():
-    try:
-        response = requests.get(URL, headers=HEADERS, timeout=10)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
-        posts = []
-        for post in soup.select("div.hotdeal_list li"):
-            a_tag = post.find("a")
-            if a_tag:
-                title = a_tag.text.strip()
-                link = "https://www.fmkorea.com" + a_tag["href"]
-                post_id = link.split("/")[-1]
-                posts.append((post_id, title, link))
-        return posts
-    except Exception as e:
-        log(f"get_posts 에러: {e}")
-        return []
+    for attempt in range(2):
+        try:
+            response = requests.get(URL, headers=HEADERS, timeout=10)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
+            posts = []
+            for post in soup.select("div.hotdeal_list li"):
+                a_tag = post.find("a")
+                if a_tag:
+                    title = a_tag.text.strip()
+                    link = "https://www.fmkorea.com" + a_tag["href"]
+                    post_id = link.split("/")[-1]
+                    posts.append((post_id, title, link))
+            if posts:
+                return posts
+            log(f"게시물 없음, 재시도 {attempt + 1}")
+            time.sleep(5)
+        except Exception as e:
+            log(f"get_posts 에러: {e}")
+            time.sleep(5)
+    return []
 
 def read_stored_ids():
     if not os.path.exists(STORED_IDS_FILE):
