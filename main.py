@@ -64,6 +64,10 @@ def send_telegram_notification(title, link):
     except Exception as e:
         log(f"텔레그램 전송 중 에러: {e}")
 
+@app.route("/")
+def health_check():
+    return "OK"
+
 @app.route("/check")
 def check_posts():
     now = datetime.now(UTC)
@@ -83,7 +87,3 @@ def check_posts():
         return "체크 완료"
     log("KST 7시 아님")
     return "KST 7시가 아닙니다"
-
-# ... (이전 코드 동일)
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
