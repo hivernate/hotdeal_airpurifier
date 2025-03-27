@@ -84,5 +84,6 @@ def check_posts():
     log("KST 7시 아님")
     return "KST 7시가 아닙니다"
 
+# ... (이전 코드 동일)
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=8000)
