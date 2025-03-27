@@ -85,5 +85,7 @@ def check_posts():
         write_ids_to_file(current_ids)
         log("체크 완료")
         return "체크 완료"
-    log("KST 7시 아님")
-    return "KST 7시가 아닙니다"
+    else:
+        send_telegram_notification("테스트: KST 7시 아님", URL)  # 테스트용 알림 추가
+        log("KST 7시 아님")
+        return "KST 7시가 아닙니다"
