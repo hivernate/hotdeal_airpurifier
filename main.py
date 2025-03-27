@@ -82,6 +82,14 @@ def check_posts():
         current_posts = get_posts()
         current_ids = {post[0] for post in current_posts}
         stored_ids = read_stored_ids()
+        
+        # 첫 실행 시 post_ids.txt 없으면 알림 없이 ID만 저장
+        if not os.path.exists(STORED_IDS_FILE):
+            log("첫 실행: 게시물 ID 저장만 진행")
+            write_ids_to_file(current_ids)
+            log("첫 실행 완료")
+            return "첫 실행: 게시물 ID 저장 완료"
+        
         new_posts = [post for post in current_posts if post[0] not in stored_ids]
         if new_posts:
             for post in new_posts:
